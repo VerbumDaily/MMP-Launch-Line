@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Motor Mouth · Master Launch Line</title>
+<style>
+:root{
+  --ink:#1c1c1c; --paper:#f4f1ea; --card:#fbfaf6; --line:#e4dfd4; --line2:#efeae0;
+  --muted:#8b8578; --head:#161616; --today:#d1512b;
+  --bar:#3a3a3a; --bardone:#c7c1b5;
+  --label-w:300px; --mw:80px; --track-w:720px; --canvas-w:1020px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0; background:var(--paper); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;}
+.wrap{max-width:1120px; margin:0 auto; padding:0 0 90px;}
+.hdr{background:var(--head); color:#fff; padding:20px 22px 22px; border-radius:0 0 16px 16px;}
+.hdr .top{display:flex; justify-content:space-between; align-items:flex-start; gap:16px;}
+.sub{font-size:11px; letter-spacing:2px; font-weight:700; color:#c7c2b6; margin:0 0 4px;}
+h1{font-size:27px; letter-spacing:.4px; margin:0; font-weight:800;}
+.pctwrap{text-align:right; flex:none;}
+.pct{font-size:26px; font-weight:800; line-height:1;}
+.pctbar{width:120px; height:7px; border-radius:4px; background:#3a3a3a; margin-top:7px; overflow:hidden;}
+.pctbar > div{height:100%; background:linear-gradient(90deg,#8a8a8a,#d9d4c8); width:0;}
+.meta{display:flex; gap:30px; margin-top:16px; flex-wrap:wrap;}
+.meta .lab{font-size:10.5px; letter-spacing:1.3px; color:#a9a396; font-weight:700; text-transform:uppercase;}
+.meta .val{font-size:15px; font-weight:700; margin-top:5px;}
+.syncbar{display:flex; align-items:center; gap:10px; padding:9px 22px; font-size:12.5px; color:var(--muted); border-bottom:1px solid var(--line);}
+.dot{width:9px; height:9px; border-radius:50%; background:#bbb; flex:none;}
+.dot.ok{background:#3a9d5d;} .dot.warn{background:#d1512b;} .dot.sync{background:#2f6fdb;}
+.syncbar button{font:inherit; font-size:12px; border:1px solid var(--line); background:var(--card); border-radius:7px; padding:5px 10px; cursor:pointer; color:var(--ink);}
+.syncbar .sp{margin-left:auto;} .syncbar button+button{margin-left:8px;}
+/* category filter chips */
+.cats{display:flex; align-items:center; gap:7px; padding:12px 22px 4px; flex-wrap:wrap;}
+.cats .hint{font-size:11px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:var(--muted); margin-right:2px;}
+.chip{font:inherit; font-size:12px; font-weight:700; letter-spacing:.2px; border:1px solid var(--line);
+  background:var(--card); color:var(--ink); border-radius:16px; padding:6px 11px; cursor:pointer;}
+.chip.on{background:var(--ink); color:#fff; border-color:var(--ink);}
+.chip.clear{border-style:dashed; color:var(--muted);}
+.controls{display:flex; gap:10px; padding:8px 22px 10px; flex-wrap:wrap; align-items:center;}
+.seg{display:inline-flex; border:1px solid var(--ink); border-radius:8px; overflow:hidden;}
+.seg button{font:inherit; font-size:12px; font-weight:700; letter-spacing:.3px; text-transform:uppercase; border:0; background:var(--card); padding:8px 11px; cursor:pointer; color:var(--ink);}
+.seg button.on{background:var(--ink); color:#fff;}
+.controls .right{margin-left:auto; display:flex; gap:8px; flex-wrap:wrap;}
+.controls .right button{font:inherit; font-size:12px; font-weight:700; letter-spacing:.3px; text-transform:uppercase; border:1px solid var(--line); background:var(--card); border-radius:8px; padding:8px 11px; cursor:pointer; color:var(--ink);}
+.controls .right button:disabled{opacity:.4; cursor:default;}
+.scrollport{overflow-x:auto; -webkit-overflow-scrolling:touch; padding:0 10px;}
+.timeline{width:var(--canvas-w); min-width:100%;}
+.thead{display:flex; align-items:flex-end; height:30px;}
+.corner{width:var(--label-w); flex:none; position:sticky; left:0; background:var(--paper); z-index:4;}
+.tmonths{position:relative; width:var(--track-w); flex:none; height:100%;}
+.moLabel{position:absolute; bottom:5px; font-size:11px; font-weight:700; color:var(--muted); letter-spacing:.5px; text-transform:uppercase; padding-left:6px;}
+.divider{display:flex; align-items:center; gap:10px; margin:14px 4px 6px; position:sticky; left:0; width:min(var(--canvas-w),520px);}
+.divider span{font-size:11px; font-weight:800; letter-spacing:.6px; text-transform:uppercase; color:var(--muted);}
+.divider .ln{flex:1; height:1px; background:var(--line);}
+.row{background:var(--card); border:1px solid var(--line); border-radius:10px; margin:7px 0; overflow:hidden;}
+.rowhead{display:flex; align-items:stretch; min-height:46px;}
+.label{width:var(--label-w); flex:none; position:sticky; left:0; background:var(--card); z-index:3; display:flex; align-items:center; gap:9px; padding:9px 11px; border-right:1px solid var(--line2);}
+.label .cb{flex:none;}
+.label .ttl{font-size:14.5px; font-weight:700; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer;}
+.label .cnt{font-size:12px; color:var(--muted); font-weight:700; flex:none;}
+.rowhead.done .ttl{text-decoration:line-through; color:var(--muted);}
+.track{width:var(--track-w); flex:none; position:relative;
+  background:repeating-linear-gradient(90deg, var(--line2) 0, var(--line2) 1px, transparent 1px, transparent var(--mw));}
+.gbar{position:absolute; top:50%; transform:translateY(-50%); height:22px; border-radius:6px; background:var(--bar); color:#fff;
+  font-size:11px; font-weight:800; letter-spacing:.2px; display:flex; align-items:center; padding:0 8px; white-space:nowrap;
+  overflow:hidden; cursor:default; user-select:none; box-shadow:0 1px 2px rgba(0,0,0,.12);}
+.gbar.done{background:var(--bardone); color:#615c53; box-shadow:none;}
+.gbar.tiny{overflow:visible;}
+.gbar .lbl.out{position:absolute; left:calc(100% + 6px); color:var(--ink); font-weight:700; opacity:.8;}
+.today{position:absolute; top:0; bottom:0; width:2px; background:var(--today); z-index:2; pointer-events:none;}
+.detail{display:none; position:sticky; left:0; width:min(var(--canvas-w),640px); max-width:96vw; border-top:1px solid var(--line2); padding:12px 14px 8px; background:#fff;}
+.row.open .detail{display:block;}
+.toprow{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px;}
+.titleedit{font:inherit; font-size:15px; font-weight:700; border:1px solid var(--line); border-radius:7px; padding:8px 9px; flex:1; min-width:180px; color:var(--ink);}
+.catpick{display:flex; align-items:center; gap:6px; font-size:10.5px; font-weight:800; letter-spacing:.4px; text-transform:uppercase; color:var(--muted);}
+.catpick select{font:inherit; font-size:13px; font-weight:700; color:var(--ink); border:1px solid var(--line); border-radius:7px; padding:7px 8px; background:var(--card); text-transform:none; letter-spacing:0;}
+.fields{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:10px;}
+.fld{display:flex; align-items:center; gap:6px; font-size:10.5px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:var(--muted);}
+.fld input{font:inherit; font-size:14px; font-weight:600; color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:6px 7px; background:var(--card); text-transform:none;}
+.fld input[type=number]{width:52px;}
+.ends{font-size:12px; font-weight:700; color:var(--ink); text-transform:none; letter-spacing:0;}
+.delline{margin-left:auto; font-size:10.5px; font-weight:800; letter-spacing:.4px; text-transform:uppercase; color:#b33; background:none; border:0; cursor:pointer;}
+.sub{display:flex; align-items:center; gap:9px; padding:5px 2px;}
+.sub .stxt{font-size:14px; flex:1;}
+.sub.done .stxt{text-decoration:line-through; color:var(--muted);}
+.sub .x{color:var(--muted); background:none; border:0; cursor:pointer; font-size:15px; padding:2px 6px;}
+.addsub{width:100%; border:1px dashed var(--line); border-radius:7px; background:transparent; padding:8px 10px; font:inherit; font-size:13px; color:var(--muted); margin:6px 0 2px;}
+.addline{margin:12px 12px 0; width:calc(100% - 24px); border:1px solid var(--ink); border-radius:10px; background:var(--card); padding:12px; font:inherit; font-size:12.5px; font-weight:800; letter-spacing:.4px; text-transform:uppercase; cursor:pointer;}
+input[type=checkbox]{width:18px; height:18px; accent-color:#3a3a3a; cursor:pointer;}
+.foot{padding:14px 22px; color:var(--muted); font-size:13px; line-height:1.55;}
+.modal{position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; padding:20px; z-index:50;}
+.modal.on{display:flex;}
+.box{background:#fff; border-radius:12px; max-width:470px; width:100%; padding:20px;}
+.box h3{margin:0 0 8px; font-size:17px;}
+.box p{font-size:13px; color:#555; line-height:1.5; margin:0 0 12px;}
+.box input,.box textarea{width:100%; font:inherit; font-size:14px; border:1px solid var(--line); border-radius:8px; padding:10px; margin-bottom:12px;}
+.box .btns{display:flex; gap:8px; justify-content:flex-end;}
+.box button{font:inherit; font-weight:700; border-radius:8px; padding:9px 14px; cursor:pointer; border:1px solid var(--line); background:var(--card);}
+.box button.primary{background:var(--ink); color:#fff; border-color:var(--ink);}
+@media (max-width:560px){ h1{font-size:22px;} .pct{font-size:22px;} .pctbar{width:96px;} .meta{gap:18px;} .foot{font-size:12px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <div class="top">
+      <div><p class="sub" id="subtitle"></p><h1 id="title"></h1></div>
+      <div class="pctwrap"><div class="pct" id="pct">0%</div><div class="pctbar"><div id="pctfill"></div></div></div>
+    </div>
+    <div class="meta">
+      <div><div class="lab">Projected open</div><div class="val" id="openDate">—</div></div>
+      <div><div class="lab">Lines complete</div><div class="val" id="taskCount">0 / 0</div></div>
+    </div>
+  </div>
+
+  <div class="syncbar">
+    <span class="dot" id="syncDot"></span><span id="syncMsg">Local only on this device</span>
+    <span class="sp"></span><button id="syncNow">Sync now</button><button id="syncSetup">Cloud sync</button>
+  </div>
+
+  <div class="cats" id="legend"></div>
+
+  <div class="controls">
+    <div class="seg">
+      <button data-sort="start" class="on">Sort by start</button>
+      <button data-sort="finish">By finish</button>
+    </div>
+    <div class="right">
+      <button id="undoBtn" disabled>Undo</button>
+      <button id="collapseAll">Collapse all</button>
+      <button id="exportBtn">Backup</button>
+      <button id="importBtn">Restore</button>
+      <button id="pasteBtn">Load from Claude</button>
+      <input type="file" id="importFile" accept="application/json" style="display:none">
+    </div>
+  </div>
+
+  <div class="scrollport">
+    <div class="timeline">
+      <div class="thead"><div class="corner"></div><div class="tmonths" id="months"></div></div>
+      <div id="list"></div>
+    </div>
+  </div>
+  <button class="addline" id="addLine">+ Add a line item</button>
+
+  <div class="foot">
+    Tap a category to float its items to the top by date; tap more to blend them together, tap again to clear. Open a
+    line to rename it, set its start date and length, change its category, or check things off. The red line is today.
+  </div>
+</div>
+
+<div class="modal" id="setupModal"><div class="box">
+  <h3>Cloud sync</h3>
+  <p>Paste the web app URL from your Google Apps Script deployment. Leave blank to stay local only.</p>
+  <input type="url" id="syncUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
+  <div class="btns"><button id="setupCancel">Cancel</button><button id="setupSave" class="primary">Save</button></div>
+</div></div>
+
+<div class="modal" id="pasteModal"><div class="box">
+  <h3>Load from Claude</h3>
+  <p>Paste the full board text Claude gave you. It replaces the whole board, then syncs to Drive. You can Undo it.</p>
+  <textarea id="pasteInput" style="height:150px; font-family:monospace; font-size:12px;" placeholder='{ "meta": { ... }, "lines": [ ... ] }'></textarea>
+  <div class="btns"><button id="pasteCancel">Cancel</button><button id="pasteLoad" class="primary">Load it</button></div>
+</div></div>
+
+<script>
+"use strict";
+const TOKEN = "mm-AElDpGWD6Eb3pG04";
+const SEED = {"meta": {"title": "MASTER LAUNCH LINE", "subtitle": "MOTOR MOUTH PIZZA · FARMINGTON HILLS", "walkthroughDate": "2026-07-15", "schemaVersion": 3, "updatedAt": "2026-07-22T03:07:50Z"}, "lines": [{"title": "Misc. NOW", "lengthWeeks": 30, "workstream": "misc", "done": false, "subtasks": [{"text": "Transfer notes from health meeting", "done": false, "id": "l01s01"}], "id": "l01", "startDate": "2026-07-15"}, {"title": "LOI and lease negotiation", "lengthWeeks": 2, "workstream": "legal", "done": false, "subtasks": [{"text": "Financing contingency in LOI", "done": false, "id": "l02s01"}, {"text": "Permit contingency", "done": false, "id": "l02s02"}, {"text": "Ask for 2 to 4 months free rent during buildout", "done": false, "id": "l02s03"}, {"text": "Raise SBA landlord subordination agreement early", "done": false, "id": "l02s04"}, {"text": "Attorney review before signing anything", "done": false, "id": "l02s05"}], "id": "l02", "startDate": "2026-07-22"}, {"title": "Visual identity and brand", "lengthWeeks": 4, "workstream": "marketing", "done": false, "subtasks": [{"text": "Logo", "done": false, "id": "l03s01"}, {"text": "Color palette", "done": false, "id": "l03s02"}, {"text": "Typography", "done": false, "id": "l03s03"}, {"text": "Storefront sign concept", "done": false, "id": "l03s04"}, {"text": "One tight brand sheet, not a full agency package", "done": false, "id": "l03s05"}], "id": "l03", "startDate": "2026-07-22"}, {"title": "Menu design", "lengthWeeks": 4, "workstream": "product", "done": false, "subtasks": [{"text": "Six savory staples plus four monthly rotators with one showstopper", "done": true, "id": "l04s01"}, {"text": "Three dessert staples plus one monthly rotator", "done": true, "id": "l04s02"}, {"text": "Box ladder: single 3.99, 4-box 13.99, 8-box 24.99, 16-box 44.99", "done": true, "id": "l04s03"}, {"text": "Three combos: lunch, dessert, group", "done": true, "id": "l04s04"}, {"text": "No-surcharge customization framing", "done": true, "id": "l04s05"}, {"text": "Drop Day presentation", "done": false, "id": "l04s06"}, {"text": "Printable one-pager version for the lender", "done": true, "id": "l04s07"}, {"text": "Menu Mock Up for Digital Display in-store", "done": true, "id": "l04s08"}, {"text": "4 months of rotations", "done": true, "id": "l04s09"}], "id": "l04", "startDate": "2026-07-22"}, {"title": "Garage Club program design", "lengthWeeks": 4, "workstream": "signature", "done": false, "subtasks": [{"text": "Confirm Racing Jacket Viability", "done": true, "id": "l05s01"}, {"text": "Mock up a tier card and status ladder", "done": false, "id": "l05s02"}, {"text": "Order Personal Jacket for Promo?", "done": false, "id": "l05s03"}], "id": "l05", "startDate": "2026-07-22"}, {"title": "Formal GC bid", "lengthWeeks": 3, "workstream": "build", "done": false, "subtasks": [{"text": "Push GC weekly for status", "done": false, "id": "l06s01"}, {"text": "Reconcile bid against sources and uses table", "done": false, "id": "l06s02"}], "id": "l06", "startDate": "2026-07-22"}, {"title": "Open Chase business account", "lengthWeeks": 1, "workstream": "finance", "done": false, "subtasks": [{"text": "Apply for EIN from the IRS first (bank needs it)", "done": true, "id": "l07s01"}, {"text": "Bring stamped LLC approval and operating agreement", "done": false, "id": "l07s02"}, {"text": "Open checking, plus a business debit and credit card", "done": false, "id": "l07s03"}, {"text": "Wire the equity injection in so it seasons before underwriting (When?)", "done": false, "id": "l07s04"}], "id": "l07", "startDate": "2026-07-22"}, {"title": "File federal trademark", "lengthWeeks": 3, "workstream": "legal", "done": false, "subtasks": [{"text": "Re-run final clearance across USPTO, LARA, common law", "done": false, "id": "l08s01"}, {"text": "File in Class 30 (pizza) and Class 43 (restaurant services)", "done": false, "id": "l08s02"}, {"text": "Prepare a specimen that shows real use in commerce", "done": false, "id": "l08s03"}, {"text": "Keep clear of the Kalamazoo food truck footprint", "done": false, "id": "l08s04"}, {"text": "Docket the exam timeline, roughly 6 to 12 months", "done": false, "id": "l08s05"}, {"text": "Watch for and answer any office actions", "done": false, "id": "l08s06"}], "id": "l08", "startDate": "2026-07-22"}, {"title": "GC walkthrough and reconfiguration", "lengthWeeks": 1, "workstream": "build", "done": false, "subtasks": [{"text": "Confirm NNN covers all three nets", "done": true, "id": "l09s01"}, {"text": "Photograph and measure everything", "done": false, "id": "l09s02"}, {"text": "Walk counter-line reconfiguration with wife and GC", "done": true, "id": "l09s03"}], "id": "l09", "startDate": "2026-07-22"}, {"title": "Order Pans", "lengthWeeks": 1, "workstream": "build", "done": true, "subtasks": [{"text": "Order Detroit pans", "done": true, "id": "l10s01"}], "id": "l10", "startDate": "2026-07-22"}, {"title": "Box design", "lengthWeeks": 4, "workstream": "marketing", "done": false, "subtasks": [{"text": "Structure and venting to protect the four edges in delivery", "done": false, "id": "l11s01"}, {"text": "Lid graphics", "done": false, "id": "l11s02"}, {"text": "Slice-identification system for mix-and-match orders", "done": false, "id": "l11s03"}, {"text": "Get mock ups", "done": false, "id": "l11s04"}], "id": "l11", "startDate": "2026-07-29"}, {"title": "Lender visuals package", "lengthWeeks": 4, "workstream": "marketing", "done": false, "subtasks": [{"text": "Box mockup", "done": false, "id": "l12s01"}, {"text": "Menu one-pager", "done": false, "id": "l12s02"}, {"text": "Storefront rendering", "done": false, "id": "l12s03"}, {"text": "Pulls directly from visual identity, menu, and box design", "done": false, "id": "l12s04"}, {"text": "Must be ready before the lending package goes in", "done": false, "id": "l12s05"}], "id": "l12", "startDate": "2026-07-29"}, {"title": "Create Email Address", "lengthWeeks": 1, "workstream": "tech", "done": false, "subtasks": [{"text": "Make list of emails I'll need", "done": false, "id": "l13s01"}, {"text": "Make them", "done": false, "id": "l13s02"}], "id": "l13", "startDate": "2026-07-29"}, {"title": "Ordering flow design", "lengthWeeks": 4, "workstream": "tech", "done": false, "subtasks": [{"text": "In-person counter and kiosk hybrid", "done": false, "id": "l14s01"}, {"text": "Third-party app menu structure for mix-and-match", "done": false, "id": "l14s02"}, {"text": "Kitchen ticket format for assortment orders", "done": false, "id": "l14s03"}, {"text": "Map how a 16-box order hits the line", "done": false, "id": "l14s04"}], "id": "l14", "startDate": "2026-07-29"}, {"title": "Kiosk research and spec", "lengthWeeks": 3, "workstream": "tech", "done": false, "subtasks": [{"text": "Price iPad-based kiosks (Square, Toast): ~800 to 2,000 hardware plus monthly software", "done": false, "id": "l15s01"}, {"text": "Price freestanding units: ~3 to 5K each", "done": false, "id": "l15s02"}, {"text": "Decide on one or two units for the hybrid model", "done": false, "id": "l15s03"}, {"text": "Fold the number into buildout assumptions", "done": false, "id": "l15s04"}], "id": "l15", "startDate": "2026-07-29"}, {"title": "Tech stack decisions", "lengthWeeks": 3, "workstream": "tech", "done": false, "subtasks": [{"text": "POS platform chosen", "done": false, "id": "l16s01"}, {"text": "Loyalty platform chosen", "done": false, "id": "l16s02"}, {"text": "Direct ordering site chosen", "done": false, "id": "l16s03"}, {"text": "Payment processor chosen", "done": false, "id": "l16s04"}, {"text": "How Belt Boss integrates with each", "done": false, "id": "l16s05"}], "id": "l16", "startDate": "2026-08-05"}, {"title": "Gather and submit lender package", "lengthWeeks": 1, "workstream": "finance", "done": false, "subtasks": [{"text": "Business plan, lender edition", "done": false, "id": "l17s01"}, {"text": "Risk assessment, marketing strategy, volume justification", "done": false, "id": "l17s02"}, {"text": "Personal financial statement current (Form 413)", "done": true, "id": "l17s03"}, {"text": "Two years personal tax returns", "done": false, "id": "l17s04"}, {"text": "Sources and uses table, GC bid, LOI", "done": false, "id": "l17s05"}, {"text": "Lender visuals package attached", "done": false, "id": "l17s06"}, {"text": "(if needed) Insurance quotes attached", "done": false, "id": "l17s07"}, {"text": "Ask lender: PLP status and time to funding", "done": false, "id": "l17s08"}], "id": "l17", "startDate": "2026-08-12"}, {"title": "Dough supplier formalization", "lengthWeeks": 12, "workstream": "product", "done": false, "subtasks": [{"text": "Written supply agreement", "done": false, "id": "l18s01"}, {"text": "Two production trials against spec", "done": false, "id": "l18s02"}, {"text": "Pricing and delivery cadence agreed", "done": false, "id": "l18s03"}, {"text": "Backup plan named", "done": false, "id": "l18s04"}], "id": "l18", "startDate": "2026-08-12"}, {"title": "Custom box production", "lengthWeeks": 11, "workstream": "marketing", "done": false, "subtasks": [{"text": "Dielines for single, 4, 8, 16 box", "done": false, "id": "l19s01"}, {"text": "Artwork approval off the box design", "done": false, "id": "l19s02"}, {"text": "Vendor minimums, 8 to 12 week lead", "done": false, "id": "l19s03"}, {"text": "Order before loan closes", "done": false, "id": "l19s04"}], "id": "l19", "startDate": "2026-08-19"}, {"title": "Underwriting and conditions", "lengthWeeks": 11, "workstream": "finance", "done": false, "subtasks": [{"text": "Same-day turnaround on every document request", "done": false, "id": "l20s01"}, {"text": "Life insurance policy if lender requires", "done": false, "id": "l20s02"}, {"text": "Bind GL, property, workers comp before closing", "done": false, "id": "l20s03"}], "id": "l20", "startDate": "2026-08-19"}, {"title": "Architect engaged, sealed", "lengthWeeks": 4, "workstream": "build", "done": false, "subtasks": [{"text": "Confirm GC brings architect or source one", "done": false, "id": "l21s01"}, {"text": "Lock hot holding decision before drawings finalize", "done": false, "id": "l21s02"}], "id": "l21", "startDate": "2026-08-19"}, {"title": "ServSafe and GM coursework", "lengthWeeks": 8, "workstream": "staff", "done": false, "subtasks": [{"text": "ServSafe Manager certification for you and the GM", "done": false, "id": "l22s01"}, {"text": "Any GM management or ops coursework", "done": false, "id": "l22s02"}, {"text": "Use the underwriting downtime for this", "done": false, "id": "l22s03"}], "id": "l22", "startDate": "2026-08-26"}, {"title": "Kitchen execution protocol", "lengthWeeks": 8, "workstream": "ops", "done": false, "subtasks": [{"text": "Pan format and pull timing", "done": false, "id": "l23s01"}, {"text": "Bake workflow, station by station", "done": false, "id": "l23s02"}, {"text": "Hold standards (hot holding, not TPHC, to keep donation feasible)", "done": false, "id": "l23s03"}, {"text": "Document it all while you are the only one who knows it", "done": false, "id": "l23s04"}, {"text": "This becomes your training backbone", "done": false, "id": "l23s05"}], "id": "l23", "startDate": "2026-08-26"}, {"title": "City and health plan review", "lengthWeeks": 5, "workstream": "permit", "done": false, "subtasks": [{"text": "Slice-shop plan review path, not the old belt format", "done": false, "id": "l24s01"}, {"text": "Oakland County review runs parallel to municipal", "done": false, "id": "l24s02"}, {"text": "Belt enclosure top shelf if belt stays in scope", "done": false, "id": "l24s03"}], "id": "l24", "startDate": "2026-09-16"}, {"title": "Uniform and Patches", "lengthWeeks": 3, "workstream": "marketing", "done": false, "subtasks": [{"text": "Find uniform supplier", "done": false, "id": "l25s01"}, {"text": "Design uniforms", "done": false, "id": "l25s02"}, {"text": "Order Uniforms", "done": false, "id": "l25s03"}, {"text": "Finalize patch scheme", "done": false, "id": "l25s04"}, {"text": "Same for patches- LOT of design work. Need at least 1 year out.", "done": false, "id": "l25s05"}], "id": "l25", "startDate": "2026-09-23"}, {"title": "Launch playbook and marketing", "lengthWeeks": 15, "workstream": "marketing", "done": false, "subtasks": [{"text": "Week-by-week content calendar for the 6 to 10 week run", "done": false, "id": "l26s01"}, {"text": "Channels and budget per the marketing plan", "done": false, "id": "l26s02"}, {"text": "Prepare social posts in advance", "done": false, "id": "l26s03"}, {"text": "Design and print all fliers and promo materials", "done": false, "id": "l26s04"}, {"text": "Local press outreach", "done": false, "id": "l26s05"}, {"text": "First six Drop Days planned", "done": false, "id": "l26s06"}, {"text": "Grand opening plan", "done": false, "id": "l26s07"}], "id": "l26", "startDate": "2026-10-21"}, {"title": "Building and trade permits", "lengthWeeks": 4, "workstream": "permit", "done": false, "subtasks": [{"text": "GC subs pull electrical, plumbing, mechanical", "done": false, "id": "l27s01"}], "id": "l27", "startDate": "2026-10-21"}, {"title": "Loan closing and lease", "lengthWeeks": 1, "workstream": "finance", "done": false, "subtasks": [{"text": "Draw schedule agreed with lender", "done": false, "id": "l28s01"}, {"text": "Business account funded and ready", "done": false, "id": "l28s02"}], "id": "l28", "startDate": "2026-11-04"}, {"title": "Ops infrastructure", "lengthWeeks": 8, "workstream": "build", "done": false, "subtasks": [{"text": "Utilities, internet, phone", "done": false, "id": "l29s01"}, {"text": "Security cameras and alarm", "done": false, "id": "l29s02"}, {"text": "Grease trap service contract", "done": false, "id": "l29s03"}, {"text": "Hood cleaning contract", "done": false, "id": "l29s04"}, {"text": "Waste hauling", "done": false, "id": "l29s05"}, {"text": "Pest control contract", "done": false, "id": "l29s06"}, {"text": "Music licensing", "done": false, "id": "l29s07"}], "id": "l29", "startDate": "2026-11-11"}, {"title": "Sign permit and fabrication", "lengthWeeks": 7, "workstream": "build", "done": false, "subtasks": [{"text": "Landlord written approval for signage", "done": false, "id": "l30s01"}, {"text": "Channel letters, 4 to 8 week fabrication", "done": false, "id": "l30s02"}], "id": "l30", "startDate": "2026-11-11"}, {"title": "Buildout", "lengthWeeks": 10, "workstream": "build", "done": false, "subtasks": [{"text": "Demo and prep", "done": false, "id": "l31s01"}, {"text": "Trades rough-in and inspections", "done": false, "id": "l31s02"}, {"text": "Finishes", "done": false, "id": "l31s03"}, {"text": "Counter and service line build", "done": false, "id": "l31s04"}, {"text": "Factory board install (only if hot holding + donation stay)", "done": false, "id": "l31s05"}, {"text": "Punch list", "done": false, "id": "l31s06"}], "id": "l31", "startDate": "2026-11-18"}, {"title": "Create Website", "lengthWeeks": 5, "workstream": "marketing", "done": false, "subtasks": [{"text": "Landing Page for marketing redirects", "done": false, "id": "l32s01"}, {"text": "Full website ready to go for launch", "done": false, "id": "l32s02"}, {"text": "POS and order integration", "done": false, "id": "l32s03"}], "id": "l32", "startDate": "2026-11-18"}, {"title": "Furniture and equipment", "lengthWeeks": 7, "workstream": "build", "done": false, "subtasks": [{"text": "Commercial furniture 4 to 10 week lead", "done": false, "id": "l33s01"}, {"text": "Kiosk hardware installed per the spec", "done": false, "id": "l33s02"}, {"text": "Smallwares order", "done": false, "id": "l33s03"}], "id": "l33", "startDate": "2026-12-02"}, {"title": "Create SOP Bible", "lengthWeeks": 4, "workstream": "ops", "done": false, "subtasks": [{"text": "Staff- Hiring, Training, Onboarding, Retention (incentives)", "done": false, "id": "l34s01"}, {"text": "To-Do's: Daily, Weekly, Monthly, Quarterly, Yearly", "done": false, "id": "l34s02"}, {"text": "Opening / Closing", "done": false, "id": "l34s03"}, {"text": "Production Line", "done": false, "id": "l34s04"}, {"text": "Pizzas", "done": false, "id": "l34s05"}, {"text": "Customer Facing", "done": false, "id": "l34s06"}, {"text": "Food Safety", "done": false, "id": "l34s07"}, {"text": "Inventory and Waste", "done": false, "id": "l34s08"}, {"text": "Marketing", "done": false, "id": "l34s09"}], "id": "l34", "startDate": "2026-12-02"}, {"title": "Product testing and menu", "lengthWeeks": 3, "workstream": "product", "done": false, "subtasks": [{"text": "Test Dough and cook times", "done": false, "id": "l35s01"}, {"text": "Refine and Solidify Menu", "done": false, "id": "l35s02"}, {"text": "Test portioning on friends", "done": false, "id": "l35s03"}], "id": "l35", "startDate": "2026-12-02"}, {"title": "Interior signage, menu boards", "lengthWeeks": 6, "workstream": "build", "done": false, "subtasks": [{"text": "Digital Menu boards Installed", "done": false, "id": "l36s01"}, {"text": "Garage Club tier materials printed", "done": false, "id": "l36s02"}, {"text": "Uniforms ordered", "done": false, "id": "l36s03"}, {"text": "Menu mock up finalized", "done": false, "id": "l36s04"}], "id": "l36", "startDate": "2026-12-16"}, {"title": "Vendor accounts and inventory", "lengthWeeks": 7, "workstream": "vendor", "done": false, "subtasks": [{"text": "Broadline distributor credit application", "done": false, "id": "l37s01"}, {"text": "Specialty item sourcing", "done": false, "id": "l37s02"}, {"text": "Initial inventory timed to open", "done": false, "id": "l37s03"}], "id": "l37", "startDate": "2026-12-30"}, {"title": "Hiring", "lengthWeeks": 5, "workstream": "staff", "done": false, "subtasks": [{"text": "Postings up", "done": false, "id": "l38s01"}, {"text": "Interviews, expect ghosting, overbook", "done": false, "id": "l38s02"}, {"text": "Confirm GM ServSafe is in hand", "done": false, "id": "l38s03"}], "id": "l38", "startDate": "2026-12-30"}, {"title": "Marketing Launch", "lengthWeeks": 6, "workstream": "marketing", "done": false, "subtasks": [{"text": "See Marketing Strategy Doc", "done": false, "id": "l39s01"}], "id": "l39", "startDate": "2027-01-06"}, {"title": "Final inspections and licenses", "lengthWeeks": 3, "workstream": "permit", "done": false, "subtasks": [{"text": "Certificate of Occupancy", "done": false, "id": "l40s01"}, {"text": "Health dept pre-opening inspection", "done": false, "id": "l40s02"}, {"text": "Food service license issued", "done": false, "id": "l40s03"}, {"text": "Hood and suppression tags current", "done": false, "id": "l40s04"}], "id": "l40", "startDate": "2027-01-27"}, {"title": "Training and stocking", "lengthWeeks": 3, "workstream": "staff", "done": false, "subtasks": [{"text": "Train off the kitchen execution protocol", "done": false, "id": "l41s01"}, {"text": "Dry runs on the line", "done": false, "id": "l41s02"}, {"text": "Payroll running, I-9s and W-4s filed", "done": false, "id": "l41s03"}, {"text": "Labor law posters up", "done": false, "id": "l41s04"}], "id": "l41", "startDate": "2027-02-03"}, {"title": "Soft open, then grand open", "lengthWeeks": 2, "workstream": "testing", "done": false, "subtasks": [{"text": "Two to four friends and family days", "done": false, "id": "l42s01"}, {"text": "Fix list worked before grand open", "done": false, "id": "l42s02"}, {"text": "Press and Garage Club launch push", "done": false, "id": "l42s03"}], "id": "l42", "startDate": "2027-02-24"}, {"id": "n01", "title": "Michigan sales & employer tax registration", "workstream": "legal", "startDate": "2026-09-08", "lengthWeeks": 2, "done": false, "subtasks": [{"id": "n01s01", "text": "Register for Michigan sales tax license with Treasury", "done": false}, {"id": "n01s02", "text": "Register for Michigan withholding tax", "done": false}, {"id": "n01s03", "text": "Open a Michigan UIA unemployment employer account", "done": false}, {"id": "n01s04", "text": "Get resale/exemption certificate for inventory purchases", "done": false}]}, {"id": "n02", "title": "Entity upkeep & federal BOI reporting", "workstream": "legal", "startDate": "2026-09-08", "lengthWeeks": 2, "done": false, "subtasks": [{"id": "n02s01", "text": "Confirm registered agent on file with LARA", "done": false}, {"id": "n02s02", "text": "Calendar the Michigan LLC annual statement due date", "done": false}, {"id": "n02s03", "text": "Confirm current FinCEN BOI requirement and file if applicable", "done": false}]}, {"id": "n03", "title": "Insurance program shopping", "workstream": "legal", "startDate": "2026-09-22", "lengthWeeks": 4, "done": false, "subtasks": [{"id": "n03s01", "text": "Select a restaurant-savvy insurance broker", "done": false}, {"id": "n03s02", "text": "Price general liability, property, and workers comp", "done": false}, {"id": "n03s03", "text": "Decide on cyber / data-breach coverage", "done": false}, {"id": "n03s04", "text": "Decide on EPLI and a commercial umbrella", "done": false}, {"id": "n03s05", "text": "Confirm business interruption coverage is included", "done": false}]}, {"id": "n04", "title": "Contracts & agreements templates", "workstream": "legal", "startDate": "2026-10-06", "lengthWeeks": 3, "done": false, "subtasks": [{"id": "n04s01", "text": "Template vendor and independent-contractor agreements", "done": false}, {"id": "n04s02", "text": "Standard offer letter and NDA where needed", "done": false}]}, {"id": "n05", "title": "ADA compliance review (space + website)", "workstream": "legal", "startDate": "2026-11-17", "lengthWeeks": 3, "done": false, "subtasks": [{"id": "n05s01", "text": "ADA review of the physical space against plans", "done": false}, {"id": "n05s02", "text": "Accessibility review of the website", "done": false}]}, {"id": "n06", "title": "Bookkeeping & accounting setup", "workstream": "finance", "startDate": "2026-09-08", "lengthWeeks": 3, "done": false, "subtasks": [{"id": "n06s01", "text": "Engage a CPA who works with restaurants", "done": false}, {"id": "n06s02", "text": "Choose and set up accounting software", "done": false}, {"id": "n06s03", "text": "Build a restaurant chart of accounts", "done": false}, {"id": "n06s04", "text": "Set up startup-cost tracking (Section 195)", "done": false}]}, {"id": "n07", "title": "Unit economics & operating budget", "workstream": "finance", "startDate": "2026-09-15", "lengthWeeks": 4, "done": false, "subtasks": [{"id": "n07s01", "text": "Cost every recipe to a plate/box cost", "done": false}, {"id": "n07s02", "text": "Set food-cost targets", "done": false}, {"id": "n07s03", "text": "Build a pre-open burn and 6-month cash-flow model", "done": false}, {"id": "n07s04", "text": "Break-even and volume model per box tier", "done": false}, {"id": "n07s05", "text": "Set a reserve / contingency target", "done": false}]}, {"id": "n08", "title": "Payroll & tip-handling setup", "workstream": "finance", "startDate": "2026-12-01", "lengthWeeks": 3, "done": false, "subtasks": [{"id": "n08s01", "text": "Select a payroll provider", "done": false}, {"id": "n08s02", "text": "Set up federal and Michigan payroll tax filing", "done": false}, {"id": "n08s03", "text": "Write a tip pooling / handling policy and confirm compliance", "done": false}]}, {"id": "n09", "title": "Cash & payment controls", "workstream": "finance", "startDate": "2027-01-05", "lengthWeeks": 3, "done": false, "subtasks": [{"id": "n09s01", "text": "Order a safe; set bank change-order and deposit routine", "done": false}, {"id": "n09s02", "text": "Write a cash-handling SOP (drawer counts, drops, deposits)", "done": false}, {"id": "n09s03", "text": "Set corporate card and expense-approval policy", "done": false}, {"id": "n09s04", "text": "Confirm PCI compliance requirements with processor", "done": false}]}, {"id": "n10", "title": "Claim business listings", "workstream": "tech", "startDate": "2026-09-15", "lengthWeeks": 2, "done": false, "subtasks": [{"id": "n10s01", "text": "Claim and build Google Business Profile", "done": false}, {"id": "n10s02", "text": "Claim Yelp, Apple Maps, and Bing listings", "done": false}]}, {"id": "n11", "title": "Network & IT spec", "workstream": "tech", "startDate": "2026-10-06", "lengthWeeks": 3, "done": false, "subtasks": [{"id": "n11s01", "text": "Business internet plus a backup / failover line", "done": false}, {"id": "n11s02", "text": "Router/firewall with separate VLAN for POS vs guest WiFi", "done": false}, {"id": "n11s03", "text": "Data-cabling plan for buildout rough-in", "done": false}]}, {"id": "n12", "title": "Network & IT install", "workstream": "tech", "startDate": "2026-12-01", "lengthWeeks": 4, "done": false, "subtasks": [{"id": "n12s01", "text": "Run data cabling during rough-in", "done": false}, {"id": "n12s02", "text": "Install router/firewall and configure VLANs", "done": false}, {"id": "n12s03", "text": "Set up password manager, shared drive, and back-office backup", "done": false}]}, {"id": "n13", "title": "Hardware fleet spec & quote", "workstream": "tech", "startDate": "2026-10-13", "lengthWeeks": 3, "done": false, "subtasks": [{"id": "n13s01", "text": "Kitchen display system (KDS) screens", "done": false}, {"id": "n13s02", "text": "Receipt printers, cash drawers, label printer for boxes/slice-ID", "done": false}, {"id": "n13s03", "text": "Thermometers and a calibration routine", "done": false}, {"id": "n13s04", "text": "Camera/DVR make, model, and coverage", "done": false}]}, {"id": "n14", "title": "Hardware fleet install & config", "workstream": "tech", "startDate": "2027-01-12", "lengthWeeks": 4, "done": false, "subtasks": [{"id": "n14s01", "text": "Install and configure KDS, printers, drawers", "done": false}, {"id": "n14s02", "text": "Install and aim the camera system", "done": false}, {"id": "n14s03", "text": "Test all hardware against the POS", "done": false}]}, {"id": "n15", "title": "Third-party delivery onboarding", "workstream": "tech", "startDate": "2026-12-15", "lengthWeeks": 4, "done": false, "subtasks": [{"id": "n15s01", "text": "Open DoorDash, Uber Eats, and Grubhub merchant accounts", "done": false}, {"id": "n15s02", "text": "Negotiate commission tiers; confirm tablet vs direct integration", "done": false}, {"id": "n15s03", "text": "Build and photograph mix-and-match menu on each platform", "done": false}]}, {"id": "n16", "title": "Gift card program setup", "workstream": "tech", "startDate": "2027-01-12", "lengthWeeks": 2, "done": false, "subtasks": [{"id": "n16s01", "text": "Choose physical and/or digital gift card program", "done": false}, {"id": "n16s02", "text": "Integrate with POS and test redemption", "done": false}]}, {"id": "n17", "title": "Org design & compensation", "workstream": "staff", "startDate": "2026-09-22", "lengthWeeks": 3, "done": false, "subtasks": [{"id": "n17s01", "text": "Define org chart, roles, and shift-coverage / headcount plan", "done": false}, {"id": "n17s02", "text": "Set wage rates by position and any benefits", "done": false}, {"id": "n17s03", "text": "Confirm current Michigan minimum and tipped-wage requirements", "done": false}]}, {"id": "n18", "title": "Employment framework", "workstream": "staff", "startDate": "2026-10-20", "lengthWeeks": 4, "done": false, "subtasks": [{"id": "n18s01", "text": "Write employee handbook (at-will, harassment, conduct, meal policy)", "done": false}, {"id": "n18s02", "text": "Write job descriptions for every role", "done": false}, {"id": "n18s03", "text": "Confirm compliance with Michigan Earned Sick Time Act", "done": false}, {"id": "n18s04", "text": "Build onboarding packet (offer letter, I-9, W-4, MI W-4, direct deposit)", "done": false}]}, {"id": "n19", "title": "Recruiting & vetting setup", "workstream": "staff", "startDate": "2026-12-01", "lengthWeeks": 3, "done": false, "subtasks": [{"id": "n19s01", "text": "Set up application pipeline (Indeed, etc.) and screening steps", "done": false}, {"id": "n19s02", "text": "Background / reference-check process", "done": false}, {"id": "n19s03", "text": "Food-handler training plan for all staff", "done": false}]}, {"id": "n20", "title": "Scheduling tool & opening schedule", "workstream": "staff", "startDate": "2027-01-26", "lengthWeeks": 2, "done": false, "subtasks": [{"id": "n20s01", "text": "Choose a scheduling tool", "done": false}, {"id": "n20s02", "text": "Build the opening-weeks schedule", "done": false}]}, {"id": "n21", "title": "Kitchen equipment spec & quote", "workstream": "build", "startDate": "2026-09-08", "lengthWeeks": 5, "done": false, "subtasks": [{"id": "n21s01", "text": "Spec and quote ovens for Detroit-style (deck/convection)", "done": false}, {"id": "n21s02", "text": "Dough mixer and sheeter if used", "done": false}, {"id": "n21s03", "text": "Walk-in cooler and freezer, reach-ins, prep tables", "done": false}, {"id": "n21s04", "text": "Dough proofer and hot-holding units", "done": false}, {"id": "n21s05", "text": "Hood/ventilation, make-up air, Ansul suppression", "done": false}, {"id": "n21s06", "text": "Three-compartment, handwash, and mop sinks, plus dish machine", "done": false}, {"id": "n21s07", "text": "Confirm water-heater capacity and grease-interceptor sizing with plans", "done": false}]}, {"id": "n22", "title": "Kitchen equipment order", "workstream": "build", "startDate": "2026-11-17", "lengthWeeks": 2, "done": false, "subtasks": [{"id": "n22s01", "text": "Place equipment orders after loan close", "done": false}, {"id": "n22s02", "text": "Confirm lead times and delivery windows", "done": false}]}, {"id": "n23", "title": "Kitchen equipment install", "workstream": "build", "startDate": "2027-01-05", "lengthWeeks": 5, "done": false, "subtasks": [{"id": "n23s01", "text": "Install cooking and refrigeration equipment", "done": false}, {"id": "n23s02", "text": "Install hood, make-up air, and suppression", "done": false}, {"id": "n23s03", "text": "Set sinks, dish machine, and water heater", "done": false}]}, {"id": "n24", "title": "Code & finish compliance items", "workstream": "build", "startDate": "2026-12-01", "lengthWeeks": 6, "done": false, "subtasks": [{"id": "n24s01", "text": "Commercial slip-resistant flooring and FRP wall panels", "done": false}, {"id": "n24s02", "text": "Restrooms to ADA (customer and staff)", "done": false}, {"id": "n24s03", "text": "Fire extinguishers, exit signs, emergency lighting", "done": false}, {"id": "n24s04", "text": "Access control, keys, and alarm zones", "done": false}]}, {"id": "n25", "title": "Exterior & pickup logistics", "workstream": "build", "startDate": "2026-12-15", "lengthWeeks": 4, "done": false, "subtasks": [{"id": "n25s01", "text": "ADA parking and exterior path of travel", "done": false}, {"id": "n25s02", "text": "Curbside / third-party pickup staging shelves and signage", "done": false}, {"id": "n25s03", "text": "Dumpster and recycling enclosure", "done": false}]}, {"id": "n26", "title": "City registration & zoning verification", "workstream": "permit", "startDate": "2026-09-08", "lengthWeeks": 2, "done": false, "subtasks": [{"id": "n26s01", "text": "Farmington Hills business registration", "done": false}, {"id": "n26s02", "text": "Zoning / use verification for the space", "done": false}, {"id": "n26s03", "text": "Confirm health jurisdiction (Oakland County vs MDARD) and plan-review fees", "done": false}]}, {"id": "n27", "title": "Fire & backflow inspections", "workstream": "permit", "startDate": "2027-02-02", "lengthWeeks": 2, "done": false, "subtasks": [{"id": "n27s01", "text": "Fire marshal inspection and any fire-department permit", "done": false}, {"id": "n27s02", "text": "Backflow prevention test and certification", "done": false}]}, {"id": "n28", "title": "Core ingredient sourcing & specs", "workstream": "product", "startDate": "2026-09-22", "lengthWeeks": 4, "done": false, "subtasks": [{"id": "n28s01", "text": "Source and spec Wisconsin brick cheese", "done": false}, {"id": "n28s02", "text": "Source and spec sauce, pepperoni/meats, and produce with backups", "done": false}, {"id": "n28s03", "text": "Recipe standardization sheets for line consistency", "done": false}]}, {"id": "n29", "title": "Beverage program decisions", "workstream": "product", "startDate": "2026-10-13", "lengthWeeks": 3, "done": false, "subtasks": [{"id": "n29s01", "text": "Decide fountain vs bottled/canned", "done": false}, {"id": "n29s02", "text": "Sign a Coke or Pepsi agreement", "done": false}, {"id": "n29s03", "text": "Set beverage menu and pricing", "done": false}]}, {"id": "n30", "title": "Beverage equipment install & stock", "workstream": "product", "startDate": "2027-02-02", "lengthWeeks": 2, "done": false, "subtasks": [{"id": "n30s01", "text": "Spec and install beverage cooler and any fountain/ice equipment", "done": false}, {"id": "n30s02", "text": "Stock opening beverage inventory", "done": false}]}, {"id": "n31", "title": "Packaging & consumables sourcing/order", "workstream": "product", "startDate": "2026-11-17", "lengthWeeks": 3, "done": false, "subtasks": [{"id": "n31s01", "text": "Source napkins, utensils, bags, liners, dip cups, slice-ID labels", "done": false}, {"id": "n31s02", "text": "Set up cleaning and chemical supplies program", "done": false}, {"id": "n31s03", "text": "Place opening orders with lead time", "done": false}]}, {"id": "n32", "title": "Vendor pars, calendar & backups", "workstream": "vendor", "startDate": "2026-12-15", "lengthWeeks": 2, "done": false, "subtasks": [{"id": "n32s01", "text": "Set inventory par levels", "done": false}, {"id": "n32s02", "text": "Build an ordering calendar", "done": false}, {"id": "n32s03", "text": "Name backups for each critical vendor", "done": false}]}, {"id": "n33", "title": "Reserve social handles & email/SMS + waitlist", "workstream": "marketing", "startDate": "2026-09-01", "lengthWeeks": 1, "done": false, "subtasks": [{"id": "n33s01", "text": "Reserve Instagram, TikTok, Facebook handles", "done": false}, {"id": "n33s02", "text": "Set up email/SMS marketing platform", "done": false}, {"id": "n33s03", "text": "Start a launch waitlist", "done": false}]}, {"id": "n34", "title": "Local SEO basics", "workstream": "marketing", "startDate": "2026-09-29", "lengthWeeks": 1, "done": false, "subtasks": [{"id": "n34s01", "text": "Optimize Google profile for local search", "done": false}, {"id": "n34s02", "text": "Consistent name/address/phone across listings", "done": false}]}, {"id": "n35", "title": "Food photography & allergen matrix", "workstream": "marketing", "startDate": "2027-01-19", "lengthWeeks": 2, "done": false, "subtasks": [{"id": "n35s01", "text": "Professional shots for menu boards, website, delivery apps", "done": false}, {"id": "n35s02", "text": "Build allergen matrix for staff and customers", "done": false}]}, {"id": "n36", "title": "Coming-soon storefront presence & countdown", "workstream": "marketing", "startDate": "2026-12-15", "lengthWeeks": 2, "done": false, "subtasks": [{"id": "n36s01", "text": "\"Coming soon\" storefront signage with a countdown", "done": false}, {"id": "n36s02", "text": "Social countdown mechanics", "done": false}]}, {"id": "n37", "title": "Press & influencer outreach", "workstream": "marketing", "startDate": "2027-02-02", "lengthWeeks": 3, "done": false, "subtasks": [{"id": "n37s01", "text": "Local food blogger / influencer outreach list", "done": false}, {"id": "n37s02", "text": "Press release and media kit", "done": false}, {"id": "n37s03", "text": "Pitch local press", "done": false}]}, {"id": "n38", "title": "Review-generation plan", "workstream": "marketing", "startDate": "2027-02-16", "lengthWeeks": 1, "done": false, "subtasks": [{"id": "n38s01", "text": "Set a review-generation plan for opening weeks", "done": false}]}, {"id": "n39", "title": "Food safety compliance system", "workstream": "ops", "startDate": "2026-12-15", "lengthWeeks": 3, "done": false, "subtasks": [{"id": "n39s01", "text": "Temperature logs, date-labeling, cooling/holding procedures", "done": false}, {"id": "n39s02", "text": "Allergen handling protocol", "done": false}, {"id": "n39s03", "text": "Cleaning and sanitation schedule tied to health code", "done": false}]}, {"id": "n40", "title": "Maintenance & service contracts", "workstream": "ops", "startDate": "2027-01-05", "lengthWeeks": 2, "done": false, "subtasks": [{"id": "n40s01", "text": "Refrigeration, oven, and HVAC service contracts", "done": false}, {"id": "n40s02", "text": "Equipment warranty and service-call log", "done": false}]}, {"id": "n41", "title": "Service model & policies", "workstream": "ops", "startDate": "2027-01-12", "lengthWeeks": 3, "done": false, "subtasks": [{"id": "n41s01", "text": "Customer service standards and complaint/refund handling", "done": false}, {"id": "n41s02", "text": "Set and post hours of operation", "done": false}, {"id": "n41s03", "text": "Delivery / third-party order workflow at the line", "done": false}]}, {"id": "n42", "title": "End-to-end systems test", "workstream": "testing", "startDate": "2027-02-09", "lengthWeeks": 1, "done": false, "subtasks": [{"id": "n42s01", "text": "Full POS + kiosk + online + delivery dry run", "done": false}, {"id": "n42s02", "text": "Map and test every menu button and modifier", "done": false}, {"id": "n42s03", "text": "Payment, refund, and gift-card transaction tests", "done": false}]}, {"id": "n43", "title": "Line & equipment readiness", "workstream": "testing", "startDate": "2027-02-16", "lengthWeeks": 2, "done": false, "subtasks": [{"id": "n43s01", "text": "Oven and thermometer calibration", "done": false}, {"id": "n43s02", "text": "Volume/throughput test (a rush of 16-box orders)", "done": false}, {"id": "n43s03", "text": "Delivery travel test: pack, drive, check the box holds", "done": false}, {"id": "n43s04", "text": "Mock health inspection and staff-cert verification", "done": false}]}, {"id": "n44", "title": "Garage Club signup & tech build", "workstream": "signature", "startDate": "2026-11-03", "lengthWeeks": 4, "done": false, "subtasks": [{"id": "n44s01", "text": "Membership signup flow and tier/status tech", "done": false}, {"id": "n44s02", "text": "Founding-member offer and perks", "done": false}, {"id": "n44s03", "text": "Founding-member recruitment push", "done": false}]}, {"id": "n45", "title": "Racing jacket & patch production run", "workstream": "signature", "startDate": "2026-12-15", "lengthWeeks": 4, "done": false, "subtasks": [{"id": "n45s01", "text": "Finalize jacket and patch specs off the design work", "done": false}, {"id": "n45s02", "text": "Place production run with lead time", "done": false}]}, {"id": "n46", "title": "Drop Day engine", "workstream": "signature", "startDate": "2027-01-19", "lengthWeeks": 3, "done": false, "subtasks": [{"id": "n46s01", "text": "Operational playbook for a drop (prep, limits, sell-through)", "done": false}, {"id": "n46s02", "text": "Marketing cadence and countdown mechanics per drop", "done": false}, {"id": "n46s03", "text": "Plan the first drop", "done": false}]}, {"id": "n47", "title": "Advisor bench & TI-vs-bid reconciliation", "workstream": "misc", "startDate": "2026-09-08", "lengthWeeks": 2, "done": false, "subtasks": [{"id": "n47s01", "text": "Confirm attorney, CPA, insurance broker, GC, architect", "done": false}, {"id": "n47s02", "text": "Reconcile landlord TI allowance against the GC bid", "done": false}]}, {"id": "n48", "title": "Utility deposits & account setups", "workstream": "misc", "startDate": "2026-11-17", "lengthWeeks": 2, "done": false, "subtasks": [{"id": "n48s01", "text": "Utility deposits and account setups", "done": false}, {"id": "n48s02", "text": "Confirm transfer / turn-on timing with buildout", "done": false}]}, {"id": "n49", "title": "Business continuity plan", "workstream": "misc", "startDate": "2027-01-19", "lengthWeeks": 2, "done": false, "subtasks": [{"id": "n49s01", "text": "Power outage / equipment failure contingency plan", "done": false}, {"id": "n49s02", "text": "Emergency contacts and incident reporting", "done": false}]}, {"id": "n50", "title": "Catering decision", "workstream": "misc", "startDate": "2026-09-15", "lengthWeeks": 1, "done": false, "subtasks": [{"id": "n50s01", "text": "Decide catering yes / no", "done": false}, {"id": "n50s02", "text": "If yes, note POS and packaging implications", "done": false}]}]};
+const LS_BOARD = "mm_launch_board_v2";
+const LS_UI = "mm_launch_ui_v1";
+const LS_URL = "mm_launch_sync_url";
+const CATS = {
+  legal:{label:"Legal & Compliance", order:0}, finance:{label:"Accounting & Finance", order:1},
+  permit:{label:"Permitting & Inspections", order:2}, build:{label:"Buildout, Equipment & Facilities", order:3},
+  tech:{label:"Technology & POS", order:4}, product:{label:"Menu, Product & Sourcing", order:5},
+  vendor:{label:"Vendors & Supply Chain", order:6}, staff:{label:"Staffing & HR", order:7},
+  ops:{label:"Operations & SOPs", order:8}, marketing:{label:"Marketing, Brand & Community", order:9},
+  testing:{label:"Pre-Open Testing & Launch", order:10}, signature:{label:"Motor Mouth Signature", order:11},
+  misc:{label:"Misc / Catch-all", order:12}
+};
+function catLabel(k){ return CATS[k]?CATS[k].label:"Misc / Catch-all"; }
+
+let state, ui, syncUrl, saveTimer=null, geom=null;
+let selectedCats=new Set();
+let history=[];
+
+/* ---------- dates ---------- */
+function pd(iso){ const p=(iso||"2026-07-15").split("-").map(Number); return new Date(p[0],p[1]-1,p[2]); }
+function fISO(dt){ return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0"); }
+function addDaysISO(iso,days){ const dt=pd(iso); dt.setDate(dt.getDate()+days); return fISO(dt); }
+function endDateOf(l){ const dt=pd(l.startDate); dt.setDate(dt.getDate()+l.lengthWeeks*7); return dt; }
+function fmtShort(dt){ return dt.toLocaleDateString("en-US",{month:"short",day:"numeric"}); }
+function fmtLong(dt){ return dt.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}); }
+
+/* ---------- migration (legacy imports) ---------- */
+function migrateBoard(b){
+  if(!b||!b.lines) return b;
+  const anchor=(b.meta&&b.meta.walkthroughDate)?b.meta.walkthroughDate:"2026-07-15";
+  b.lines.forEach(l=>{
+    if(l.startDate===undefined && l.startWeek!==undefined) l.startDate=addDaysISO(anchor,l.startWeek*7);
+    if(l.startWeek!==undefined) delete l.startWeek;
+    if(l.startDate===undefined) l.startDate=anchor;
+    if(l.lengthWeeks===undefined||l.lengthWeeks<1) l.lengthWeeks=1;
+    if(!CATS[l.workstream]) l.workstream="misc";
+  });
+  return b;
+}
+
+/* ---------- persistence ---------- */
+function loadLocal(){ try{ const r=localStorage.getItem(LS_BOARD); if(r) return migrateBoard(JSON.parse(r)); }catch(e){}
+  return migrateBoard(JSON.parse(JSON.stringify(SEED))); }
+function loadUI(){ try{ const r=localStorage.getItem(LS_UI); if(r){ const u=JSON.parse(r); if(u.sort!=="finish") u.sort="start"; return u; } }catch(e){}
+  return {sort:"start", collapsed:{}}; }
+function saveLocal(){ try{ localStorage.setItem(LS_BOARD, JSON.stringify(state)); }catch(e){} }
+function saveUI(){ try{ localStorage.setItem(LS_UI, JSON.stringify(ui)); }catch(e){} }
+
+/* ---------- undo ---------- */
+function snapshot(){ try{ history.push(JSON.stringify(state)); if(history.length>80) history.shift(); }catch(e){} updateUndo(); }
+function updateUndo(){ const b=document.getElementById("undoBtn"); if(b) b.disabled=history.length===0; }
+function undo(){ if(!history.length) return; let prev; try{ prev=JSON.parse(history.pop()); }catch(e){ return; }
+  state=prev; render(); scheduleSave(); updateUndo(); }
+function act(fn){ snapshot(); fn(); render(); scheduleSave(); }
+
+/* ---------- sync (JSONP read, iframe write) ---------- */
+function setSync(cls,msg){ document.getElementById("syncDot").className="dot "+(cls||""); document.getElementById("syncMsg").textContent=msg; }
+function pullRemote(showMsg){
+  if(!syncUrl) return Promise.resolve(false);
+  return new Promise((resolve)=>{
+    if(showMsg) setSync("sync","Loading from Drive…");
+    const cbName="mmcb_"+Date.now()+"_"+Math.floor(Math.random()*1e6); let done=false;
+    const s=document.createElement("script");
+    function cleanup(){ try{ delete window[cbName]; }catch(e){ window[cbName]=undefined; } if(s.parentNode) s.parentNode.removeChild(s); }
+    const timer=setTimeout(()=>{ if(done)return; done=true; cleanup(); setSync("warn","Offline · using this device"); resolve(false); },12000);
+    window[cbName]=function(data){ if(done)return; done=true; clearTimeout(timer); cleanup();
+      if(data&&data.ok&&data.board&&Array.isArray(data.board.lines)){ state=migrateBoard(data.board); saveLocal(); render(); setSync("ok","Synced from Drive"); resolve(true); }
+      else if(data&&data.ok&&data.empty){ pushRemote(true); resolve(true); }
+      else { setSync("warn","Sync reachable, no data"); resolve(false); } };
+    s.onerror=function(){ if(done)return; done=true; clearTimeout(timer); cleanup(); setSync("warn","Offline · using this device"); resolve(false); };
+    s.src=syncUrl+"?token="+encodeURIComponent(TOKEN)+"&action=get&callback="+cbName+"&t="+Date.now();
+    document.body.appendChild(s);
+  });
+}
+function pushRemote(silent){
+  if(!syncUrl) return;
+  if(!silent) setSync("sync","Saving to Drive…");
+  try{
+    state.meta.updatedAt=new Date().toISOString();
+    let iframe=document.getElementById("mm_sink");
+    if(!iframe){ iframe=document.createElement("iframe"); iframe.name="mm_sink"; iframe.id="mm_sink"; iframe.style.display="none"; document.body.appendChild(iframe); }
+    const form=document.createElement("form"); form.method="POST"; form.action=syncUrl+"?token="+encodeURIComponent(TOKEN); form.target="mm_sink"; form.style.display="none";
+    const inp=document.createElement("input"); inp.type="hidden"; inp.name="payload"; inp.value=JSON.stringify({action:"save", board:state});
+    form.appendChild(inp); document.body.appendChild(form); form.submit();
+    setTimeout(()=>{ if(form.parentNode) form.parentNode.removeChild(form); },5000);
+    setSync("ok","Saved to Drive");
+  }catch(e){ setSync("warn","Offline · saved on device"); }
+}
+function scheduleSave(){ saveLocal(); if(!syncUrl){ setSync("","Local only on this device"); return; }
+  setSync("sync","Saving…"); clearTimeout(saveTimer); saveTimer=setTimeout(()=>pushRemote(false),1100); }
+
+/* ---------- geometry ---------- */
+function computeGeom(){
+  let earliest=null, latest=null;
+  state.lines.forEach(l=>{ const s=pd(l.startDate), e=endDateOf(l); if(!earliest||s<earliest) earliest=s; if(!latest||e>latest) latest=e; });
+  const now=new Date(); if(!earliest){ earliest=new Date(); latest=new Date(); }
+  if(now<earliest) earliest=now; if(now>latest) latest=now;
+  const first=new Date(earliest.getFullYear(), earliest.getMonth(), 1);
+  const months=[]; let c=new Date(first); const lastM=new Date(latest.getFullYear(), latest.getMonth(), 1);
+  while(c<=lastM){ months.push(new Date(c)); c.setMonth(c.getMonth()+1); }
+  if(!months.length) months.push(new Date(first));
+  const port=document.querySelector(".scrollport"); const cw=(port?port.clientWidth:1000)-20; const narrow=cw<560;
+  const LABEL_W=narrow?168:300; const MINMW=narrow?66:70; const avail=cw-LABEL_W-2;
+  const mw=Math.max(MINMW, Math.floor(avail/months.length)); const trackW=mw*months.length;
+  const totalDays=(new Date(first.getFullYear(), first.getMonth()+months.length, 1)-first)/86400000;
+  return {months, first, LABEL_W, mw, trackW, canvasW:LABEL_W+trackW, totalDays};
+}
+function monthFrac(dt){ const m=geom.months;
+  for(let i=0;i<m.length;i++){ const ms=m[i], next=new Date(ms.getFullYear(), ms.getMonth()+1, 1);
+    if(dt<next){ const dim=(next-ms)/86400000; const into=Math.max(0,(dt-ms)/86400000); return i+into/dim; } }
+  return m.length; }
+function xOf(dt){ return (monthFrac(dt)/geom.months.length)*geom.trackW; }
+
+/* ---------- progress ---------- */
+function lineComplete(l){ if(l.subtasks.length===0) return l.done; return l.done||l.subtasks.every(s=>s.done); }
+function projectedOpen(){ let latest=null; state.lines.forEach(l=>{ const e=endDateOf(l); if(!latest||e>latest) latest=e; }); return latest||new Date(); }
+function updateHeader(){
+  const total=state.lines.length, done=state.lines.filter(lineComplete).length; const pct=total?Math.round(done/total*100):0;
+  document.getElementById("pct").textContent=pct+"%"; document.getElementById("pctfill").style.width=pct+"%";
+  document.getElementById("taskCount").textContent=done+" / "+total;
+  document.getElementById("openDate").textContent=fmtLong(projectedOpen());
+  document.getElementById("subtitle").textContent=state.meta.subtitle||""; document.getElementById("title").textContent=state.meta.title||"";
+}
+
+/* ---------- category chips ---------- */
+function renderCats(){
+  const host=document.getElementById("legend"); host.innerHTML="";
+  const hint=document.createElement("span"); hint.className="hint"; hint.textContent="Focus:"; host.appendChild(hint);
+  Object.keys(CATS).sort((a,b)=>CATS[a].order-CATS[b].order).forEach(k=>{
+    const b=document.createElement("button"); b.className="chip"+(selectedCats.has(k)?" on":""); b.textContent=CATS[k].label;
+    b.onclick=()=>{ if(selectedCats.has(k)) selectedCats.delete(k); else selectedCats.add(k); renderCats(); render(); };
+    host.appendChild(b);
+  });
+  if(selectedCats.size){ const c=document.createElement("button"); c.className="chip clear"; c.textContent="Clear";
+    c.onclick=()=>{ selectedCats.clear(); renderCats(); render(); }; host.appendChild(c); }
+}
+
+/* ---------- ordering ---------- */
+function orderedRows(){
+  const all=state.lines.slice();
+  const byStart=(a,b)=>pd(a.startDate)-pd(b.startDate)||a.title.localeCompare(b.title);
+  const byFinish=(a,b)=>endDateOf(a)-endDateOf(b)||a.title.localeCompare(b.title);
+  if(selectedCats.size===0){ all.sort(ui.sort==="finish"?byFinish:byStart); return {rows:all, dividerAt:-1}; }
+  const sel=all.filter(l=>selectedCats.has(l.workstream)).sort(byStart);
+  const rest=all.filter(l=>!selectedCats.has(l.workstream)).sort(byStart);
+  return {rows:sel.concat(rest), dividerAt:(rest.length?sel.length:-1)};
+}
+
+/* ---------- render ---------- */
+function render(){
+  geom=computeGeom();
+  const r=document.documentElement.style;
+  r.setProperty("--label-w", geom.LABEL_W+"px"); r.setProperty("--mw", geom.mw+"px");
+  r.setProperty("--track-w", geom.trackW+"px"); r.setProperty("--canvas-w", geom.canvasW+"px");
+  updateHeader();
+  const mhost=document.getElementById("months"); mhost.innerHTML="";
+  geom.months.forEach((m,i)=>{ const el=document.createElement("div"); el.className="moLabel"; el.style.left=(i*geom.mw)+"px";
+    el.textContent=m.toLocaleDateString("en-US",{month:"short"}); mhost.appendChild(el); });
+  const list=document.getElementById("list"); list.innerHTML="";
+  const todayX=xOf(new Date());
+  const {rows, dividerAt}=orderedRows();
+  rows.forEach((l,idx)=>{
+    if(idx===dividerAt){ const dv=document.createElement("div"); dv.className="divider";
+      const s=document.createElement("span"); s.textContent="Everything else"; const ln=document.createElement("div"); ln.className="ln";
+      dv.appendChild(s); dv.appendChild(ln); list.appendChild(dv); }
+    const doneCount=l.subtasks.filter(s=>s.done).length;
+    const row=document.createElement("div"); row.className="row"+(ui.collapsed[l.id]?"":" open");
+    const head=document.createElement("div"); head.className="rowhead"+(lineComplete(l)?" done":"");
+    const label=document.createElement("div"); label.className="label";
+    const cb=document.createElement("input"); cb.type="checkbox"; cb.className="cb"; cb.checked=lineComplete(l);
+    cb.onchange=()=>act(()=>{ const v=cb.checked; l.done=v; l.subtasks.forEach(s=>s.done=v); });
+    const ttl=document.createElement("div"); ttl.className="ttl"; ttl.textContent=l.title; ttl.title=l.title;
+    ttl.onclick=()=>{ ui.collapsed[l.id]=!ui.collapsed[l.id]; saveUI(); render(); };
+    const cnt=document.createElement("div"); cnt.className="cnt"; cnt.textContent=(l.subtasks.length?doneCount+"/"+l.subtasks.length:"");
+    label.appendChild(cb); label.appendChild(ttl); label.appendChild(cnt);
+    const track=document.createElement("div"); track.className="track";
+    if(todayX>=0&&todayX<=geom.trackW){ const td=document.createElement("div"); td.className="today"; td.style.left=todayX+"px"; track.appendChild(td); }
+    const s=pd(l.startDate), e=endDateOf(l); const left=xOf(s), right=xOf(e); const w=Math.max(6,right-left);
+    const bar=document.createElement("div"); bar.className="gbar"+(lineComplete(l)?" done":""); bar.style.left=left+"px"; bar.style.width=w+"px";
+    const rangeTxt=fmtShort(s)+" – "+fmtShort(e);
+    if(w<86){ bar.classList.add("tiny"); const lo=document.createElement("span"); lo.className="lbl out"; lo.textContent=rangeTxt; bar.appendChild(lo); }
+    else { const li=document.createElement("span"); li.className="lbl"; li.textContent=rangeTxt; bar.appendChild(li); }
+    track.appendChild(bar);
+    head.appendChild(label); head.appendChild(track); row.appendChild(head);
+    // detail
+    const det=document.createElement("div"); det.className="detail";
+    const toprow=document.createElement("div"); toprow.className="toprow";
+    const te=document.createElement("input"); te.className="titleedit"; te.type="text"; te.value=l.title;
+    te.onchange=()=>{ const v=te.value.trim(); if(v && v!==l.title) act(()=>{ l.title=v; }); };
+    const cp=document.createElement("label"); cp.className="catpick"; cp.textContent="Category ";
+    const sel=document.createElement("select");
+    Object.keys(CATS).sort((a,b)=>CATS[a].order-CATS[b].order).forEach(k=>{ const o=document.createElement("option"); o.value=k; o.textContent=CATS[k].label; if(k===l.workstream)o.selected=true; sel.appendChild(o); });
+    sel.onchange=()=>act(()=>{ l.workstream=sel.value; });
+    cp.appendChild(sel); toprow.appendChild(te); toprow.appendChild(cp); det.appendChild(toprow);
+    const fields=document.createElement("div"); fields.className="fields";
+    const sdWrap=document.createElement("label"); sdWrap.className="fld"; sdWrap.textContent="Start ";
+    const sd=document.createElement("input"); sd.type="date"; sd.value=l.startDate; sd.onchange=()=>{ if(sd.value) act(()=>{ l.startDate=sd.value; }); };
+    sdWrap.appendChild(sd); fields.appendChild(sdWrap);
+    const lnWrap=document.createElement("label"); lnWrap.className="fld"; lnWrap.textContent="Weeks long ";
+    const ln=document.createElement("input"); ln.type="number"; ln.min="1"; ln.value=l.lengthWeeks; ln.onchange=()=>act(()=>{ l.lengthWeeks=Math.max(1,parseInt(ln.value||"1",10)); });
+    lnWrap.appendChild(ln); fields.appendChild(lnWrap);
+    const ends=document.createElement("span"); ends.className="ends"; ends.textContent="Ends "+fmtLong(endDateOf(l)); fields.appendChild(ends);
+    const del=document.createElement("button"); del.className="delline"; del.textContent="Delete line";
+    del.onclick=()=>{ if(confirm('Delete "'+l.title+'" and its breakdown?')) act(()=>{ state.lines=state.lines.filter(x=>x.id!==l.id); }); };
+    fields.appendChild(del); det.appendChild(fields);
+    l.subtasks.forEach(st=>{
+      const sr=document.createElement("div"); sr.className="sub"+(st.done?" done":"");
+      const scb=document.createElement("input"); scb.type="checkbox"; scb.checked=st.done; scb.onchange=()=>act(()=>{ st.done=scb.checked; });
+      const stx=document.createElement("div"); stx.className="stxt"; stx.textContent=st.text;
+      const xb=document.createElement("button"); xb.className="x"; xb.textContent="×"; xb.onclick=()=>act(()=>{ l.subtasks=l.subtasks.filter(x=>x.id!==st.id); });
+      sr.appendChild(scb); sr.appendChild(stx); sr.appendChild(xb); det.appendChild(sr);
+    });
+    const add=document.createElement("input"); add.className="addsub"; add.placeholder="Add to the breakdown, press Enter";
+    add.onkeydown=(ev)=>{ if(ev.key==="Enter"&&add.value.trim()){ const v=add.value.trim(); act(()=>{ l.subtasks.push({id:l.id+"s"+Date.now(),text:v,done:false}); }); } };
+    det.appendChild(add); row.appendChild(det); list.appendChild(row);
+  });
+}
+
+/* ---------- controls ---------- */
+function wireControls(){
+  document.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{ document.querySelectorAll(".seg button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); ui.sort=b.dataset.sort; saveUI(); render(); });
+  document.getElementById("undoBtn").onclick=undo;
+  document.getElementById("collapseAll").onclick=()=>{ const anyOpen=state.lines.some(l=>!ui.collapsed[l.id]); state.lines.forEach(l=>ui.collapsed[l.id]=anyOpen); saveUI(); render(); };
+  document.getElementById("addLine").onclick=()=>{ const t=prompt("New line item name:"); if(!t) return;
+    act(()=>{ const id="l"+Date.now(); state.lines.push({id, title:t.trim(), startDate:fISO(new Date()), lengthWeeks:2, workstream:"misc", done:false, subtasks:[]}); ui.collapsed[id]=false; }); };
+  document.getElementById("exportBtn").onclick=()=>{ const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); const d=new Date();
+    const stamp=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); a.href=url; a.download="motor-mouth-launch-plan-"+stamp+".json"; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); };
+  document.getElementById("importBtn").onclick=()=>document.getElementById("importFile").click();
+  document.getElementById("importFile").onchange=(ev)=>{ const f=ev.target.files[0]; if(!f)return; const rd=new FileReader();
+    rd.onload=(e)=>{ try{ const o=JSON.parse(e.target.result); if(!o.lines||!Array.isArray(o.lines)){ alert("That does not look like a Motor Mouth backup."); return; }
+      if(confirm("Load this backup? It replaces everything on the board.")) act(()=>{ state=migrateBoard(o); }); }catch(err){ alert("Could not read that file."); } ev.target.value=""; }; rd.readAsText(f); };
+  document.getElementById("pasteBtn").onclick=()=>{ document.getElementById("pasteInput").value=""; document.getElementById("pasteModal").classList.add("on"); };
+  document.getElementById("pasteCancel").onclick=()=>document.getElementById("pasteModal").classList.remove("on");
+  document.getElementById("pasteLoad").onclick=()=>{ const raw=document.getElementById("pasteInput").value.trim(); if(!raw) return; let o;
+    try{ o=JSON.parse(raw); }catch(err){ alert("That is not valid board text."); return; } if(!o.lines||!Array.isArray(o.lines)){ alert("That does not look like a Motor Mouth board."); return; }
+    if(confirm("Load this version? It replaces the whole board, then syncs to Drive.")){ document.getElementById("pasteModal").classList.remove("on"); act(()=>{ state=migrateBoard(o); }); } };
+  document.getElementById("syncNow").onclick=()=>{ if(syncUrl) pullRemote(true); else openSetup(); };
+  document.getElementById("syncSetup").onclick=openSetup;
+  document.getElementById("setupCancel").onclick=()=>document.getElementById("setupModal").classList.remove("on");
+  document.getElementById("setupSave").onclick=()=>{ const v=document.getElementById("syncUrlInput").value.trim(); syncUrl=v||""; if(v) localStorage.setItem(LS_URL,v); else localStorage.removeItem(LS_URL);
+    document.getElementById("setupModal").classList.remove("on"); if(syncUrl){ pullRemote(true).then(ok=>{ if(!ok) pushRemote(false); }); } else setSync("","Local only on this device"); };
+  let rz=null; window.addEventListener("resize",()=>{ clearTimeout(rz); rz=setTimeout(render,180); });
+}
+function openSetup(){ document.getElementById("syncUrlInput").value=syncUrl||""; document.getElementById("setupModal").classList.add("on"); }
+
+/* ---------- boot ---------- */
+function boot(){
+  state=loadLocal(); ui=loadUI(); if(!ui.collapsed) ui.collapsed={};
+  syncUrl=localStorage.getItem(LS_URL)||"";
+  document.querySelectorAll(".seg button").forEach(b=>b.classList.toggle("on", b.dataset.sort===ui.sort));
+  wireControls(); renderCats(); render(); updateUndo();
+  if(syncUrl){ setSync("sync","Connecting to Drive…"); pullRemote(true); } else setSync("","Local only on this device");
+}
+boot();
+</script>
+</body>
+</html>
